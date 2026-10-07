@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Reports - HealthVault AI</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- =========================
+         HEADER
+    ========================== -->
+
+    <header class="topbar">
+
+        <a href="dashboard.html" class="brand">
+            <span class="brand-mark">HV</span>
+
+            <div>
+                <h1 style="font-size: 1.2rem;">
+                    HealthVault AI
+                </h1>
+
+                <p class="tagline">
+                    Your personal health records, organized.
+                </p>
+            </div>
+        </a>
+
+        <nav class="tabs">
+
+            <a class="tab-btn" href="dashboard.html">
+                Overview
+            </a>
+
+            <a class="tab-btn active" href="reports.html">
+                Reports
+            </a>
+
+            <a class="tab-btn" href="medications.html">
+                Medications
+            </a>
+
+            <a class="tab-btn" href="appointments.html">
+                Appointments
+            </a>
+
+            <a class="tab-btn" href="trends.html">
+                Trends
+            </a>
+
+        </nav>
+
+        <button class="btn-ghost" onclick="signOut()">
+            Switch Patient
+        </button>
+
+    </header>
+
+
+    <!-- =========================
+         MAIN PAGE
+    ========================== -->
+
+    <div class="page">
+
+        <!-- =========================
+             UPLOAD REPORT
+        ========================== -->
+
+        <section class="card">
+
+            <h2>
+                Upload Medical Report
+            </h2>
+
+            <p>
+                Upload a medical report for AI-powered OCR and analysis.
+            </p>
+
+            <form id="report-upload-form">
+
+                <div class="form-group">
+
+                    <label for="report-type">
+                        Report Type
+                    </label>
+
+                    <input
+                        type="text"
+                        id="report-type"
+                        name="report_type"
+                        placeholder="e.g. Blood Test"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="report-date">
+                        Report Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="report-date"
+                        name="report_date"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="report-file">
+                        Medical Report
+                    </label>
+
+                    <input
+                        type="file"
+                        id="report-file"
+                        name="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="btn-primary"
+                    id="upload-button"
+                >
+                    Upload & Analyze
+                </button>
+
+            </form>
+
+
+            <div
+                id="upload-status"
+                class="form-status"
+                style="display: none;"
+            ></div>
+
+        </section>
+
+
+        <!-- =========================
+             REPORT HISTORY
+        ========================== -->
+
+        <section class="card">
+
+            <h2>
+                Report History
+            </h2>
+
+            <div style="overflow-x: auto;">
+
+                <table class="data-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Date
+                            </th>
+
+                            <th>
+                                Type
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Doctor View
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="reports-body">
+
+                        <tr>
+
+                            <td colspan="4">
+                                Loading reports...
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             AI ANALYSIS RESULT
+        ========================== -->
+
+        <section
+            class="card"
+            id="report-result"
+            style="display: none;"
+        >
+
+            <h2>
+                AI Analysis
+            </h2>
+
+
+            <div id="report-summary"></div>
+
+
+            <h3>
+                Important Findings
+            </h3>
+
+            <div id="report-findings"></div>
+
+
+            <h3>
+                Parameters
+            </h3>
+
+            <div id="report-parameters"></div>
+
+        </section>
+
+    </div>
+
+
+    <!-- =========================
+         JAVASCRIPT
+         
+         IMPORTANT:
+         Supabase must load BEFORE api.js
+    ========================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="app.js"></script>
+
+    <script src="api.js"></script>
+
+
+    <!-- =========================
+         PAGE SCRIPT
+    ========================== -->
+
+    <script>
+
+        /* ---------------------------------
+           CURRENT USER
+        ---------------------------------- */
+
+        const userId = requireUser();
+
+        const reportsBody =
+            document.getElementById("reports-body");
+
+
+        /* ---------------------------------
+           HTML ESCAPE
+        ---------------------------------- */
+
+        function escapeHtml(value) {
+
+            const div =
+                document.createElement("div");
+
+            div.textContent =
+                value ?? "";
+
+            return div.innerHTML;
+        }
+
+
+        /* ---------------------------------
+           LOAD REPORTS
+        ---------------------------------- */
+
+        async function loadReports() {
+
+            reportsBody.innerHTML = `
+                <tr>
+                    <td colspan="4">
+                        Loading reports...
+                    </td>
+                </tr>
+            `;
+
+            try {
+
+                const data =
+                    await Api.getDashboard(userId);
+
+                console.log(
+                    "Dashboard data:",
+                    data
+                );
+
+                const reports =
+                    Array.isArray(data.reports)
+                        ? data.reports
+                        : [];
+
+                console.log(
+                    "Reports received:",
+                    reports
+                );
+
+                renderReports(reports);
+
+            } catch (error) {
+
+                console.error(
+                    "Could not load reports:",
+                    error
+                );
+
+                reportsBody.innerHTML = `
+                    <tr>
+                        <td colspan="4">
+                            Could not load reports:
+                            ${escapeHtml(error.message)}
+                        </td>
+                    </tr>
+                `;
+
+            }
+
+        }
+
+
+        /* ---------------------------------
+           RENDER REPORTS
+        ---------------------------------- */
+
+        function renderReports(reports) {
+
+            reportsBody.innerHTML = "";
+
+
+            /* No reports */
+
+            if (
+                !reports ||
+                reports.length === 0
+            ) {
+
+                reportsBody.innerHTML = `
+                    <tr>
+                        <td colspan="4">
+                            No reports uploaded yet.
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+
+            /* Render each report */
+
+            reports.forEach((report, index) => {
+
+                const row =
+                    document.createElement("tr");
+
+
+                /* -------------------------
+                   GET REPORT ID
+                -------------------------- */
+
+                const reportId =
+                    report.report_id;
+
+
+                console.log(
+                    `Report ${index + 1}:`,
+                    report
+                );
+
+                console.log(
+                    `Report ${index + 1} ID:`,
+                    reportId
+                );
+
+
+                /* -------------------------
+                   DOCTOR VIEW URL
+                -------------------------- */
+
+                let doctorLink = "-";
+
+
+                if (reportId) {
+
+                    const doctorUrl =
+                        `doctor.html?report_id=${encodeURIComponent(reportId)}`;
+
+
+                    console.log(
+                        "Doctor URL:",
+                        doctorUrl
+                    );
+
+
+                    doctorLink = `
+                        <a
+                            href="${doctorUrl}"
+                            class="btn-primary"
+                            style="
+                                display: inline-block;
+                                text-decoration: none;
+                                padding: 6px 12px;
+                                font-size: 0.85rem;
+                            "
+                        >
+                            Open
+                        </a>
+                    `;
+
+                } else {
+
+                    console.error(
+                        "This report has no report_id:",
+                        report
+                    );
+
+                    doctorLink = `
+                        <span>
+                            No Report ID
+                        </span>
+                    `;
+
+                }
+
+
+                /* -------------------------
+                   ROW
+                -------------------------- */
+
+                row.innerHTML = `
+
+                    <td>
+                        ${escapeHtml(
+                            report.report_date || "-"
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${escapeHtml(
+                            report.report_type || "-"
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${escapeHtml(
+                            report.status || "processing"
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${doctorLink}
+                    </td>
+
+                `;
+
+
+                reportsBody.appendChild(row);
+
+            });
+
+        }
+
+
+        /* ---------------------------------
+           UPLOAD REPORT
+        ---------------------------------- */
+
+        const uploadForm =
+            document.getElementById(
+                "report-upload-form"
+            );
+
+
+        uploadForm.addEventListener(
+            "submit",
+            async function (event) {
+
+                event.preventDefault();
+
+
+                const button =
+                    document.getElementById(
+                        "upload-button"
+                    );
+
+
+                const status =
+                    document.getElementById(
+                        "upload-status"
+                    );
+
+
+                const file =
+                    document.getElementById(
+                        "report-file"
+                    ).files[0];
+
+
+                /* -------------------------
+                   CHECK FILE
+                -------------------------- */
+
+                if (!file) {
+
+                    status.style.display =
+                        "block";
+
+                    status.textContent =
+                        "Please select a report file.";
+
+                    status.className =
+                        "form-status error";
+
+                    return;
+
+                }
+
+
+                /* -------------------------
+                   CREATE FORM DATA
+                -------------------------- */
+
+                const formData =
+                    new FormData();
+
+
+                formData.append(
+                    "user_id",
+                    userId
+                );
+
+
+                formData.append(
+                    "report_type",
+                    document.getElementById(
+                        "report-type"
+                    ).value
+                );
+
+
+                formData.append(
+                    "report_date",
+                    document.getElementById(
+                        "report-date"
+                    ).value
+                );
+
+
+                formData.append(
+                    "file",
+                    file
+                );
+
+
+                /* -------------------------
+                   UI
+                -------------------------- */
+
+                button.disabled =
+                    true;
+
+                button.textContent =
+                    "Uploading & Analyzing...";
+
+
+                status.style.display =
+                    "block";
+
+                status.textContent =
+                    "Uploading report and running AI analysis...";
+
+                status.className =
+                    "form-status loading";
+
+
+                try {
+
+                    /* -------------------------
+                       UPLOAD
+                    -------------------------- */
+
+                    const result =
+                        await Api.uploadReport(
+                            formData
+                        );
+
+
+                    console.log(
+                        "Upload result:",
+                        result
+                    );
+
+
+                    /* -------------------------
+                       SHOW RESULT
+                    -------------------------- */
+
+                    const resultBox =
+                        document.getElementById(
+                            "report-result"
+                        );
+
+
+                    resultBox.style.display =
+                        "block";
+
+
+                    /* Summary */
+
+                    document.getElementById(
+                        "report-summary"
+                    ).textContent =
+                        result.summary ||
+                        result.ai_summary ||
+                        "Analysis completed.";
+
+
+                    /* -------------------------
+                       FINDINGS
+                    -------------------------- */
+
+                    const findings =
+                        result.important_findings;
+
+
+                    const findingsBox =
+                        document.getElementById(
+                            "report-findings"
+                        );
+
+
+                    if (
+                        Array.isArray(findings)
+                    ) {
+
+                        findingsBox.innerHTML =
+                            "<ul>" +
+
+                            findings
+                                .map(
+                                    item =>
+                                        `<li>${escapeHtml(item)}</li>`
+                                )
+                                .join("") +
+
+                            "</ul>";
+
+                    } else {
+
+                        findingsBox.textContent =
+                            findings ||
+                            "No important findings returned.";
+
+                    }
+
+
+                    /* -------------------------
+                       PARAMETERS
+                    -------------------------- */
+
+                    const parameters =
+                        result.parameters || [];
+
+
+                    const parameterBox =
+                        document.getElementById(
+                            "report-parameters"
+                        );
+
+
+                    if (
+                        Array.isArray(parameters) &&
+                        parameters.length > 0
+                    ) {
+
+                        parameterBox.innerHTML =
+                            "<ul>" +
+
+                            parameters
+                                .map(
+                                    p => `
+                                        <li>
+                                            ${escapeHtml(
+                                                p.name || "-"
+                                            )}
+                                            :
+                                            ${escapeHtml(
+                                                p.value ?? "-"
+                                            )}
+                                            ${escapeHtml(
+                                                p.unit || ""
+                                            )}
+                                        </li>
+                                    `
+                                )
+                                .join("") +
+
+                            "</ul>";
+
+                    } else {
+
+                        parameterBox.textContent =
+                            "No parameters returned.";
+
+                    }
+
+
+                    /* -------------------------
+                       SUCCESS
+                    -------------------------- */
+
+                    status.textContent =
+                        "Report uploaded and analyzed successfully.";
+
+                    status.className =
+                        "form-status success";
+
+
+                    uploadForm.reset();
+
+
+                    /* Refresh report list */
+
+                    await loadReports();
+
+
+                } catch (error) {
+
+                    console.error(
+                        "Report upload error:",
+                        error
+                    );
+
+
+                    status.textContent =
+                        `Upload failed: ${error.message}`;
+
+                    status.className =
+                        "form-status error";
+
+                }
+
+
+                /* -------------------------
+                   RESTORE BUTTON
+                -------------------------- */
+
+                button.disabled =
+                    false;
+
+                button.textContent =
+                    "Upload & Analyze";
+
+            }
+        );
+
+
+        /* ---------------------------------
+           INITIAL LOAD
+        ---------------------------------- */
+
+        if (userId) {
+
+            loadReports();
+
+        }
+
+    </script>
+
+</body>
+
+</html>

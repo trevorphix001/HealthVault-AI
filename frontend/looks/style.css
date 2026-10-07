@@ -1,0 +1,156 @@
+/* ============================================================
+   HealthVault AI — shared stylesheet (all pages)
+   Palette: paper sage background, deep teal primary, warm amber
+   for attention/abnormal states.
+   ============================================================ */
+:root{
+  --paper:      #f5f6f1;
+  --paper-dim:  #eceee6;
+  --ink:        #1c2420;
+  --ink-soft:   #57615a;
+  --teal:       #1f6f63;
+  --teal-deep:  #164f46;
+  --amber:      #b9772e;
+  --amber-soft: #f3e3cd;
+  --red:        #a8402f;
+  --line:       #d9dcd2;
+  --white:      #ffffff;
+  --radius:     10px;
+  --shadow:     0 1px 2px rgba(28,36,32,0.06), 0 6px 20px rgba(28,36,32,0.05);
+  --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  --font-body: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+*{ box-sizing: border-box; }
+html,body{ margin:0; padding:0; background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+h1,h2,h3{ font-family: var(--font-display); font-weight: 500; margin: 0; color: var(--teal-deep); }
+h2{ font-size: 1.3rem; margin-bottom: 1rem; }
+h3{ font-size: 1.05rem; margin: 1.2rem 0 0.5rem; }
+.hidden{ display:none !important; }
+a{ color: var(--teal); }
+
+/* ---------- brand / topbar ---------- */
+.brand{ display:flex; align-items:center; gap:0.9rem; text-decoration:none; }
+.brand-mark{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:40px; height:40px; border-radius:11px;
+  background: var(--teal); color:var(--white);
+  font-family: var(--font-display); font-size:1.05rem; letter-spacing:0.02em; flex-shrink:0;
+}
+.tagline{ margin:0.1rem 0 0; color: var(--ink-soft); font-size:0.85rem; }
+
+.topbar{
+  display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;
+  padding: 1rem 2rem; background: var(--white); border-bottom:1px solid var(--line);
+  position: sticky; top:0; z-index:10;
+}
+.tabs{ display:flex; gap:0.2rem; flex:1; flex-wrap:wrap; }
+.tab-btn{
+  text-decoration:none; background:none; border:none; padding:0.5rem 0.85rem; border-radius:8px;
+  font-family: var(--font-body); font-size:0.88rem; color: var(--ink-soft); cursor:pointer;
+}
+.tab-btn.active{ background: var(--paper-dim); color: var(--teal-deep); font-weight:600; }
+.tab-btn:hover{ color: var(--teal-deep); }
+
+/* ---------- generic layout ---------- */
+.page{ max-width:1000px; margin:0 auto; padding: 1.8rem 2rem 4rem; }
+.card{
+  background: var(--white); border:1px solid var(--line); border-radius: var(--radius);
+  padding:1.5rem; box-shadow: var(--shadow); margin-bottom:1.6rem;
+}
+.card-header-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:0.8rem; flex-wrap:wrap; gap:0.6rem; }
+
+/* ---------- welcome / register screens ---------- */
+.centered-screen{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:2rem 1rem; }
+.auth-card{ width:100%; max-width:440px; background: var(--white); border:1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow); padding: 2rem; }
+.auth-form{ display:flex; flex-direction:column; gap:0.9rem; margin-top:1.2rem; }
+.register-grid{ display:grid; grid-template-columns: repeat(2,1fr); gap:0.9rem; margin-top:1.2rem; }
+.auth-footnote{ margin-top:1.2rem; font-size:0.85rem; color: var(--ink-soft); text-align:center; }
+
+/* ---------- forms ---------- */
+label{ display:flex; flex-direction:column; gap:0.35rem; font-size:0.85rem; color: var(--ink-soft); }
+input, select, textarea{
+  font-family: var(--font-body); font-size:0.95rem; color: var(--ink);
+  padding:0.55rem 0.7rem; border:1px solid var(--line); border-radius:8px;
+  background: var(--paper); outline:none; width:100%;
+}
+input:focus, select:focus, textarea:focus{ border-color: var(--teal); }
+
+.btn-primary{
+  background: var(--teal); color: var(--white); border:none;
+  padding:0.65rem 1.1rem; border-radius:8px; font-size:0.92rem; font-weight:600; cursor:pointer;
+}
+.btn-primary:hover{ background: var(--teal-deep); }
+.btn-ghost{
+  background:none; border:1px solid var(--line); color: var(--ink-soft);
+  padding:0.55rem 1rem; border-radius:8px; cursor:pointer; font-size:0.88rem; text-decoration:none; display:inline-block;
+}
+.btn-ghost:hover{ border-color: var(--teal); color: var(--teal-deep); }
+.btn-primary:focus-visible, .btn-ghost:focus-visible, .tab-btn:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+
+.form-status{ font-size:0.83rem; min-height:1.2em; color: var(--ink-soft); }
+.form-status.error{ color: var(--red); }
+.form-status.success{ color: var(--teal-deep); }
+
+/* ---------- overview ---------- */
+.stat-row{ display:grid; grid-template-columns: repeat(4, 1fr); gap:1rem; margin-bottom:1.6rem; }
+.stat-card{
+  background: var(--white); border:1px solid var(--line); border-radius: var(--radius);
+  padding:1.1rem; display:flex; flex-direction:column; gap:0.3rem; box-shadow: var(--shadow);
+}
+.stat-value{ font-family: var(--font-display); font-size:1.9rem; color: var(--teal-deep); }
+.stat-label{ font-size:0.78rem; color: var(--ink-soft); }
+
+.profile-grid{ display:grid; grid-template-columns: repeat(5, 1fr); gap:1rem; }
+.profile-grid > div{ display:flex; flex-direction:column; gap:0.25rem; }
+.field-label{ font-size:0.75rem; color: var(--ink-soft); }
+.user-id-note{ margin-top:1.1rem; font-size:0.8rem; color: var(--ink-soft); }
+.user-id-note code{ background: var(--paper-dim); padding:0.15rem 0.4rem; border-radius:4px; }
+
+/* ---------- upload ---------- */
+.upload-form{ display:grid; grid-template-columns: 1fr 1fr 1fr auto; gap:1rem; align-items:end; }
+.upload-progress{ margin-top:1.4rem; }
+.progress-steps{ list-style:none; padding:0; margin:0; display:flex; flex-wrap:wrap; gap:0.5rem; }
+.progress-steps li{
+  padding:0.5rem 0.85rem; border-radius:8px; background: var(--paper-dim); color: var(--ink-soft); font-size:0.85rem;
+}
+.progress-steps li.active{ background: var(--amber-soft); color:#7a4d17; font-weight:600; }
+.progress-steps li.complete{ background: var(--teal); color:var(--white); }
+.upload-result{ margin-top:1.4rem; border-top:1px solid var(--line); padding-top:1.2rem; }
+.disclaimer{ font-size:0.78rem; color: var(--ink-soft); font-style:italic; }
+
+.param-table, .data-table{ width:100%; border-collapse:collapse; margin-top:0.5rem; }
+.param-table th, .param-table td, .data-table th, .data-table td{
+  text-align:left; padding:0.55rem 0.65rem; border-bottom:1px solid var(--line); font-size:0.87rem;
+}
+.param-table th, .data-table th{ color: var(--ink-soft); font-weight:600; font-size:0.76rem; }
+
+.status-pill{ display:inline-block; padding:0.15rem 0.55rem; border-radius:999px; font-size:0.74rem; font-weight:600; }
+.status-normal{ background: #e2ede4; color: var(--teal-deep); }
+.status-high, .status-low{ background: var(--amber-soft); color:#7a4d17; }
+.status-unknown{ background: var(--paper-dim); color: var(--ink-soft); }
+
+/* ---------- trends ---------- */
+.hint{ color: var(--ink-soft); font-size:0.87rem; }
+.trends-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(340px,1fr)); gap:1.1rem; margin-top:0.8rem; }
+.trend-card{ border:1px solid var(--line); border-radius: var(--radius); padding:0.9rem; }
+.trend-card h4{ margin:0 0 0.5rem; font-family: var(--font-display); color: var(--teal-deep); font-weight:500; }
+
+/* ---------- inline add-forms ---------- */
+.inline-form{ display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap:0.8rem; align-items:end; margin-top:0.8rem; padding-top:0.9rem; border-top:1px dashed var(--line); }
+
+.link-btn{ background:none; border:none; color: var(--teal); cursor:pointer; font-size:0.84rem; padding:0; text-decoration:underline; }
+
+/* ---------- doctor view ---------- */
+.doctor-header{ display:flex; align-items:center; justify-content:space-between; padding:1rem 2rem; background: var(--white); border-bottom:1px solid var(--line); }
+.finding-list{ padding-left:1.1rem; }
+
+@media (max-width: 860px){
+  .stat-row{ grid-template-columns: repeat(2,1fr); }
+  .profile-grid{ grid-template-columns: repeat(2,1fr); }
+  .upload-form, .register-grid{ grid-template-columns: 1fr; }
+  .page{ padding:1.2rem; }
+  .topbar{ padding:1rem; }
+}
+@media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }

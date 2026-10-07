@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <metaname="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Medications - HealthVault AI</title>
+        <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="topbar">
+
+        <ahref="dashboard.html" class="brand">
+            <span class="brand-mark">HV</span>
+            <div>
+                <h1 style="font-size:1.2rem;">HealthVault AI</h1>
+                <p class="tagline">Your personal health records, organized.</p>
+            </div>
+            </a>
+
+            <nav class="tabs"><a class="tab-btn" href="dashboard.html"> Overview</a>
+                <a class="tab-btn" href="reports.html">Reports</a>
+                <a class="tab-btn active" href="medications.html">Medications</a>
+                <a class="tab-btn" href="appointments.html">Appointments</a>
+                <a class="tab-btn" href="trends.html">Trends</a>
+            </nav>
+
+            <button class="btn-ghost" onclick="signOut()">Switch Patient</button>
+    </header>
+
+    <div class="page">
+        <section class="card">
+            <div class="card-header-row">
+                <h2>Medications</h2>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>
+                            Medicine
+                        </th>
+
+                        <th>
+                            Dosage
+                        </th>
+
+                        <th>
+                            Frequency
+                        </th>
+
+                        <th>
+                            Reminder
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="medications-body"></tbody>
+            </table>
+            <form id="form-medication" class="inline-form">
+                <label>Medicine name<input type="text" name="medicine_name" required></label>
+                <label>Dosage<input type="text" name="dosage" placeholder="e.g. 500mg" required></label>
+                <label>Frequency<input type="text" name="frequency" placeholder="e.g. Twice daily" required></label>
+                <label>Reminder time<input type="time" name="reminder_time" required></label>
+                <label>Start date<input type="date" name="start_date" required></label>
+                <label>End date<input type="date" name="end_date"></label>
+                <button type="submit" class="btn-primary">Add Medication</button>
+            </form>
+            <p class="form-status" id="medication-status"></p>
+        </section>
+    </div>
+    <script src="app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="api.js"></script>
+    <script>
+        const userId =
+            requireUser();
+        function loadMedications() {
+            Api.getMedications(
+                userId
+            )
+                .then(
+                    renderMedications
+                )
+                .catch(error => {
+                    document
+                        .getElementById(
+                            "medications-body"
+                        )
+                        .innerHTML = `
+                <tr>
+                    <td colspan="4">
+                        Could not load medications:
+                        ${error.message}
+                    </td>
+                </tr>
+            `;
+                });
+        }
+
+        function renderMedications(
+            medications
+        ) {
+            const body =
+                document.getElementById(
+                    "medications-body"
+                );
+            body.innerHTML = "";
+            if (
+                !medications ||
+                medications.length === 0
+            ) {
+                body.innerHTML = `
+            <tr>
+                <td colspan="4">
+                    No medications added yet.
+                </td>
+            </tr>
+        `;
+                return;
+            }
+            medications.forEach(
+                medication => {
+                    const row =
+                        document.createElement(
+                            "tr"
+                        );
+                    row.innerHTML = `
+                <td>
+                    ${medication.medicine_name || "-"}
+                </td>
+
+                <td>
+                    ${medication.dosage || "-"}
+                </td>
+
+                <td>
+                    ${medication.frequency || "-"}
+                </td>
+
+                <td>
+                    ${medication.reminder_time || "-"}
+                </td>
+
+            `;
+                    body.appendChild(
+                        row
+                    );
+                }
+            );
+        }
+
+        if (userId) {
+            loadMedications();
+        }
+
+        document
+            .getElementById(
+                "form-medication"
+            )
+            .addEventListener(
+                "submit",
+                async function (event) {
+                    event.preventDefault();
+                    const form =
+                        event.target;
+                    const status =
+                        document.getElementById(
+                            "medication-status"
+                        );
+                    const payload =
+                        Object.fromEntries(
+                            new FormData(form)
+                                .entries()
+                        );
+                    payload.user_id =
+                        userId;
+                    try {
+                        await Api.addMedication(
+                            payload
+                        );
+                        form.reset();
+                        status.textContent =
+                            "Medication added successfully.";
+                        status.className =
+                            "form-status success";
+                        loadMedications();
+                    } catch (error) {
+                        status.textContent =
+                            `Could not save medication: ${error.message}`;
+                        status.className =
+                            "form-status error";
+                    }
+                }
+            );
+    </script>
+</body>
+
+</html>

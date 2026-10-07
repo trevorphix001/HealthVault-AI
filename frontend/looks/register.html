@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | HealthVault AI</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <span class="brand-icon">🧬</span>
+            <span>HealthVault AI</span>
+        </div>
+        <a href="index.html" class="nav-link">Already have a Patient ID? Login</a>
+    </header>
+    <main class="auth-page">
+        <section class="auth-card">
+            <div class="auth-header">
+                <h1>
+                    Create Your HealthVault
+                </h1>
+                <p>Register your patient profile to securely manage your health records, medications and appointments.
+                </p>
+            </div>
+            <form id="form-register">
+                <div class="form-group"> <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+                </div>
+
+                <div class="form-group"><label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="example@email.com" required>
+                </div>
+
+                <div class="form-group"><label for="phone"> Phone Number</label>
+                    <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" required>
+                </div>
+
+                <div class="form-group"><label for="date_of_birth"> Date of Birth</label>
+                    <input type="date" id="date_of_birth" name="date_of_birth" required>
+                </div>
+
+                <div class="form-group"><label for="gender">Gender</label>
+                    <select id="gender" name="gender" required>
+                        <option value="">Select gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                        <option value="Prefer not to say">Prefer not to say</option>
+                    </select>
+                </div>
+
+                <div class="form-group"><label for="blood_group">Blood Group</label>
+                    <select id="blood_group" name="blood_group" required>
+                        <option value="">Select blood group</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
+                <button type="submit" id="btn-register" class="btn-primary">Create Patient Profile</button>
+                <div id="register-status" class="form-status" style="display:none;"></div>
+            </form>
+            <div class="auth-footer">
+                <p> Already registered? <a href="index.html">Open your dashboard</a></p>
+            </div>
+        </section>
+    </main>
+    <script src="app.js"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="api.js"></script>
+    <script>
+        const form =
+            document.getElementById(
+                "form-register"
+            );
+        const button =
+            document.getElementById(
+                "btn-register"
+            );
+        const statusBox =
+            document.getElementById(
+                "register-status"
+            );
+        function showStatus(
+            message,
+            type = "error"
+        ) {
+            statusBox.style.display =
+                "block";
+            statusBox.textContent =
+                message;
+            statusBox.className =
+                `form-status ${type}`;
+        }
+        form.addEventListener(
+            "submit",
+            async function (event) {
+                event.preventDefault();
+                button.disabled = true;
+                button.textContent =
+                    "Creating Profile...";
+                showStatus(
+                    "Creating your HealthVault profile...",
+                    "loading"
+                );
+                const payload = {
+                    name:
+                        document
+                            .getElementById("name")
+                            .value
+                            .trim(),
+                    email:
+                        document
+                            .getElementById("email")
+                            .value
+                            .trim(),
+                    phone:
+                        document
+                            .getElementById("phone")
+                            .value
+                            .trim(),
+                    date_of_birth:
+                        document
+                            .getElementById("date_of_birth")
+                            .value,
+                    gender:
+                        document
+                            .getElementById("gender")
+                            .value,
+                    blood_group:
+                        document
+                            .getElementById("blood_group")
+                            .value
+                };
+                try {
+                    const data =
+                        await Api.registerUser(
+                            payload
+                        );
+                    if (
+                        !data ||
+                        !data.success ||
+                        !data.user_id
+                    ) {
+                        throw new Error(
+                            "Registration failed."
+                        );
+                    }
+                    setCurrentUserId(
+                        data.user_id
+                    );
+                    showStatus(
+                        "Registration successful! Your Patient ID has been generated.",
+                        "success"
+                    );
+                    button.textContent =
+                        "Registration Successful";
+                    setTimeout(
+                        () => {
+                            window.location.href =
+                                "dashboard.html";
+                        },
+                        1200
+                    );
+                } catch (error) {
+                    console.error(
+                        "Registration error:",
+                        error
+                    );
+                    showStatus(
+                        error.message ||
+                        "Unable to register. Please try again.",
+                        "error"
+                    );
+                    button.disabled = false;
+                    button.textContent =
+                        "Create Patient Profile";
+                }
+            }
+        );
+    </script>
+</body>
+
+</html>

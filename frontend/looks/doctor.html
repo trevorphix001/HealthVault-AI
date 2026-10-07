@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Doctor View — HealthVault AI</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header class="doctor-header">
+
+        <div class="brand">
+
+            <span class="brand-mark">
+                HV
+            </span>
+
+            <div>
+
+                <h1 style="font-size: 1.2rem;">
+                    HealthVault AI
+                </h1>
+
+                <p class="tagline">
+                    Doctor report view — no patient login required
+                </p>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- =====================================================
+         MAIN PAGE
+    ====================================================== -->
+
+    <div class="page">
+
+
+        <!-- =================================================
+             ERROR / NOT FOUND
+        ================================================== -->
+
+        <section
+            class="card hidden"
+            id="card-not-found"
+        >
+
+            <h2>
+                Doctor Report
+            </h2>
+
+            <p id="not-found-text">
+                No report_id was given.
+            </p>
+
+            <p>
+                Open this page as:
+            </p>
+
+            <code>
+                doctor.html?report_id=&lt;id&gt;
+            </code>
+
+        </section>
+
+
+
+        <!-- =================================================
+             LOADING
+        ================================================== -->
+
+        <section
+            class="card"
+            id="card-loading"
+        >
+
+            <h2>
+                Loading Medical Report...
+            </h2>
+
+            <p>
+                Please wait while HealthVault AI retrieves
+                the patient's report.
+            </p>
+
+        </section>
+
+
+
+        <!-- =================================================
+             PATIENT INFORMATION
+        ================================================== -->
+
+        <section
+            class="card hidden"
+            id="card-report"
+        >
+
+            <h2>
+                Patient Information
+            </h2>
+
+
+            <div class="profile-grid">
+
+
+                <div>
+
+                    <span class="field-label">
+                        Name
+                    </span>
+
+                    <span id="patient-name">
+                        —
+                    </span>
+
+                </div>
+
+
+                <div>
+
+                    <span class="field-label">
+                        Age
+                    </span>
+
+                    <span id="patient-age">
+                        —
+                    </span>
+
+                </div>
+
+
+                <div>
+
+                    <span class="field-label">
+                        Gender
+                    </span>
+
+                    <span id="patient-gender">
+                        —
+                    </span>
+
+                </div>
+
+
+                <div>
+
+                    <span class="field-label">
+                        Blood Group
+                    </span>
+
+                    <span id="patient-blood-group">
+                        —
+                    </span>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             REPORT SUMMARY
+        ================================================== -->
+
+        <section
+            class="card hidden"
+            id="card-summary"
+        >
+
+            <h2>
+                Medical Report
+            </h2>
+
+
+            <p>
+
+                <strong id="report-type">
+                    —
+                </strong>
+
+                <span>
+                    —
+                </span>
+
+                <span id="report-date">
+                    —
+                </span>
+
+            </p>
+
+
+            <h3>
+                AI Summary
+            </h3>
+
+
+            <p id="report-summary">
+                —
+            </p>
+
+
+            <p
+                class="disclaimer"
+                id="report-disclaimer"
+            ></p>
+
+
+            <h3>
+                Important Findings
+            </h3>
+
+
+            <ul
+                class="finding-list"
+                id="report-findings"
+            ></ul>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             HEALTH PARAMETERS
+        ================================================== -->
+
+        <section
+            class="card hidden"
+            id="card-parameters"
+        >
+
+            <h2>
+                Extracted Health Parameters
+            </h2>
+
+
+            <div style="overflow-x: auto;">
+
+                <table class="param-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Parameter
+                            </th>
+
+                            <th>
+                                Value
+                            </th>
+
+                            <th>
+                                Reference Range
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="parameters-body">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             DOCTOR REVIEWS
+        ================================================== -->
+
+        <section
+            class="card hidden"
+            id="card-reviews"
+        >
+
+            <h2>
+                Doctor Review
+            </h2>
+
+
+            <!-- Existing Reviews -->
+
+            <div id="existing-reviews">
+
+                <p class="hint">
+                    Loading reviews...
+                </p>
+
+            </div>
+
+
+            <hr style="margin: 1.5rem 0;">
+
+
+            <!-- New Review -->
+
+            <h3>
+                Add Doctor Review
+            </h3>
+
+
+            <form
+                id="form-review"
+                class="inline-form"
+                style="
+                    grid-template-columns:
+                    1fr 2fr auto;
+                "
+            >
+
+
+                <label>
+
+                    Doctor Name
+
+                    <input
+                        type="text"
+                        name="doctor_name"
+                        placeholder="Dr. Sharma"
+                        required
+                    >
+
+                </label>
+
+
+                <label>
+
+                    Review
+
+                    <input
+                        type="text"
+                        name="review"
+                        placeholder="e.g. Report reviewed. Follow-up recommended."
+                        required
+                    >
+
+                </label>
+
+
+                <button
+                    type="submit"
+                    class="btn-primary"
+                    id="review-submit-button"
+                >
+                    Submit Review
+                </button>
+
+
+            </form>
+
+
+            <p
+                class="form-status"
+                id="review-status"
+            ></p>
+
+
+        </section>
+
+
+    </div>
+
+
+
+    <!-- =====================================================
+         JAVASCRIPT LIBRARIES
+         
+         IMPORTANT ORDER:
+         1. Supabase
+         2. app.js
+         3. api.js
+    ====================================================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="app.js"></script>
+
+    <script src="api.js"></script>
+
+
+
+    <!-- =====================================================
+         DOCTOR VIEW SCRIPT
+    ====================================================== -->
+
+    <script>
+
+        /*
+        ======================================================
+        DEBUG
+        ======================================================
+        */
+
+        console.log(
+            "========================================"
+        );
+
+        console.log(
+            "HealthVault AI — Doctor View"
+        );
+
+        console.log(
+            "Current URL:",
+            window.location.href
+        );
+
+        console.log(
+            "Query String:",
+            window.location.search
+        );
+
+
+        /*
+        ======================================================
+        GET REPORT ID
+        ======================================================
+        */
+
+        const reportId =
+            getQueryParam("report_id");
+
+
+        console.log(
+            "Report ID:",
+            reportId
+        );
+
+
+        console.log(
+            "========================================"
+        );
+
+
+
+        /*
+        ======================================================
+        ELEMENT REFERENCES
+        ======================================================
+        */
+
+        const loadingCard =
+            document.getElementById(
+                "card-loading"
+            );
+
+
+        const notFoundCard =
+            document.getElementById(
+                "card-not-found"
+            );
+
+
+        const reportCard =
+            document.getElementById(
+                "card-report"
+            );
+
+
+        const summaryCard =
+            document.getElementById(
+                "card-summary"
+            );
+
+
+        const parametersCard =
+            document.getElementById(
+                "card-parameters"
+            );
+
+
+        const reviewsCard =
+            document.getElementById(
+                "card-reviews"
+            );
+
+
+
+        /*
+        ======================================================
+        SHOW ERROR
+        ======================================================
+        */
+
+        function showError(message) {
+
+            loadingCard.classList.add(
+                "hidden"
+            );
+
+
+            reportCard.classList.add(
+                "hidden"
+            );
+
+
+            summaryCard.classList.add(
+                "hidden"
+            );
+
+
+            parametersCard.classList.add(
+                "hidden"
+            );
+
+
+            reviewsCard.classList.add(
+                "hidden"
+            );
+
+
+            document.getElementById(
+                "not-found-text"
+            ).textContent = message;
+
+
+            notFoundCard.classList.remove(
+                "hidden"
+            );
+
+        }
+
+
+
+        /*
+        ======================================================
+        ESCAPE HTML
+        ======================================================
+        */
+
+        function escapeHTML(value) {
+
+            return String(
+                value ?? ""
+            )
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+                .replace(
+                    />/g,
+                    "&gt;"
+                )
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+                .replace(
+                    /'/g,
+                    "&#039;"
+                );
+
+        }
+
+
+
+        /*
+        ======================================================
+        RENDER PATIENT
+        ======================================================
+        */
+
+        function renderPatient(patient) {
+
+            patient =
+                patient || {};
+
+
+            document.getElementById(
+                "patient-name"
+            ).textContent =
+                patient.name || "—";
+
+
+            document.getElementById(
+                "patient-age"
+            ).textContent =
+                calcAge(
+                    patient.date_of_birth
+                );
+
+
+            document.getElementById(
+                "patient-gender"
+            ).textContent =
+                patient.gender || "—";
+
+
+            document.getElementById(
+                "patient-blood-group"
+            ).textContent =
+                patient.blood_group || "—";
+
+        }
+
+
+
+        /*
+        ======================================================
+        RENDER REPORT
+        ======================================================
+        */
+
+        function renderReport(report, disclaimer) {
+
+            report =
+                report || {};
+
+
+            /*
+            ----------------------------------------------
+            REPORT TYPE
+            ----------------------------------------------
+            */
+
+            document.getElementById(
+                "report-type"
+            ).textContent =
+                report.report_type ||
+                "Medical Report";
+
+
+            /*
+            ----------------------------------------------
+            REPORT DATE
+            ----------------------------------------------
+            */
+
+            document.getElementById(
+                "report-date"
+            ).textContent =
+                report.report_date ||
+                "—";
+
+
+            /*
+            ----------------------------------------------
+            AI SUMMARY
+            ----------------------------------------------
+            */
+
+            document.getElementById(
+                "report-summary"
+            ).textContent =
+                report.ai_summary ||
+                report.summary ||
+                "No AI summary available.";
+
+
+            /*
+            ----------------------------------------------
+            DISCLAIMER
+            ----------------------------------------------
+            */
+
+            document.getElementById(
+                "report-disclaimer"
+            ).textContent =
+                disclaimer ||
+                "AI-generated information is for informational purposes only and does not constitute medical advice or diagnosis.";
+
+
+            /*
+            ----------------------------------------------
+            IMPORTANT FINDINGS
+            ----------------------------------------------
+            */
+
+            const findingsElement =
+                document.getElementById(
+                    "report-findings"
+                );
+
+
+            findingsElement.innerHTML =
+                "";
+
+
+            let findings =
+                report.important_findings;
+
+
+            if (
+                typeof findings === "string"
+            ) {
+
+                try {
+
+                    findings =
+                        JSON.parse(findings);
+
+                } catch (error) {
+
+                    findings = [
+                        findings
+                    ];
+
+                }
+
+            }
+
+
+            if (
+                !Array.isArray(findings) ||
+                findings.length === 0
+            ) {
+
+                findingsElement.innerHTML = `
+                    <li>
+                        No specific findings flagged.
+                    </li>
+                `;
+
+                return;
+
+            }
+
+
+            findings.forEach(
+                finding => {
+
+                    const li =
+                        document.createElement(
+                            "li"
+                        );
+
+
+                    li.textContent =
+                        typeof finding === "object"
+                            ? JSON.stringify(finding)
+                            : finding;
+
+
+                    findingsElement.appendChild(
+                        li
+                    );
+
+                }
+            );
+
+        }
+
+
+
+        /*
+        ======================================================
+        RENDER PARAMETERS
+        ======================================================
+        */
+
+        function renderParameters(parameters) {
+
+            const body =
+                document.getElementById(
+                    "parameters-body"
+                );
+
+
+            body.innerHTML =
+                "";
+
+
+            if (
+                !Array.isArray(parameters) ||
+                parameters.length === 0
+            ) {
+
+                body.innerHTML = `
+                    <tr>
+                        <td colspan="4">
+                            No laboratory parameters extracted.
+                        </td>
+                    </tr>
+                `;
+
+                return;
+
+            }
+
+
+            parameters.forEach(
+                parameter => {
+
+                    const row =
+                        document.createElement(
+                            "tr"
+                        );
+
+
+                    const name =
+                        parameter.name ||
+                        "—";
+
+
+                    const value =
+                        parameter.value ??
+                        "—";
+
+
+                    const unit =
+                        parameter.unit ||
+                        "";
+
+
+                    const referenceRange =
+                        parameter.reference_range ||
+                        "—";
+
+
+                    const status =
+                        parameter.status ||
+                        "unknown";
+
+
+                    row.innerHTML = `
+
+                        <td>
+                            ${escapeHTML(name)}
+                        </td>
+
+                        <td>
+                            ${escapeHTML(
+                                String(value)
+                            )}
+                            ${escapeHTML(unit)}
+                        </td>
+
+                        <td>
+                            ${escapeHTML(
+                                referenceRange
+                            )}
+                        </td>
+
+                        <td>
+                            ${statusPillHTML(status)}
+                        </td>
+
+                    `;
+
+
+                    body.appendChild(
+                        row
+                    );
+
+                }
+            );
+
+        }
+
+
+
+        /*
+        ======================================================
+        RENDER REVIEWS
+        ======================================================
+        */
+
+        function renderReviews(reviews) {
+
+            const container =
+                document.getElementById(
+                    "existing-reviews"
+                );
+
+
+            container.innerHTML =
+                "";
+
+
+            if (
+                !Array.isArray(reviews) ||
+                reviews.length === 0
+            ) {
+
+                container.innerHTML = `
+                    <p class="hint">
+                        No reviews submitted yet.
+                    </p>
+                `;
+
+                return;
+
+            }
+
+
+            reviews.forEach(
+                review => {
+
+                    const div =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    div.style.padding =
+                        "0.8rem 0";
+
+
+                    div.style.borderBottom =
+                        "1px solid var(--line)";
+
+
+                    const doctor =
+                        document.createElement(
+                            "strong"
+                        );
+
+
+                    doctor.textContent =
+                        review.doctor_name ||
+                        "Doctor";
+
+
+                    const date =
+                        document.createElement(
+                            "span"
+                        );
+
+
+                    date.className =
+                        "hint";
+
+
+                    date.style.marginLeft =
+                        "8px";
+
+
+                    date.textContent =
+                        review.created_at
+                            ? new Date(
+                                review.created_at
+                            ).toLocaleString()
+                            : "";
+
+
+                    const text =
+                        document.createElement(
+                            "p"
+                        );
+
+
+                    text.style.margin =
+                        "0.3rem 0 0";
+
+
+                    text.textContent =
+                        review.review ||
+                        "";
+
+
+                    div.appendChild(
+                        doctor
+                    );
+
+
+                    div.appendChild(
+                        date
+                    );
+
+
+                    div.appendChild(
+                        text
+                    );
+
+
+                    container.appendChild(
+                        div
+                    );
+
+                }
+            );
+
+        }
+
+
+
+        /*
+        ======================================================
+        LOAD DOCTOR REPORT
+        ======================================================
+        */
+
+        async function loadDoctorReport() {
+
+            /*
+            ----------------------------------------------
+            CHECK REPORT ID
+            ----------------------------------------------
+            */
+
+            if (!reportId) {
+
+                console.error(
+                    "No report_id found in URL."
+                );
+
+
+                showError(
+                    "No report_id was given. Open this page as doctor.html?report_id=<id>."
+                );
+
+
+                return;
+
+            }
+
+
+            /*
+            ----------------------------------------------
+            DEBUG
+            ----------------------------------------------
+            */
+
+            console.log(
+                "Loading Doctor Report..."
+            );
+
+
+            console.log(
+                "Report ID:",
+                reportId
+            );
+
+
+            try {
+
+                /*
+                ------------------------------------------
+                API CALL
+                ------------------------------------------
+                */
+
+                const data =
+                    await Api.getDoctorReport(
+                        reportId
+                    );
+
+
+                console.log(
+                    "Doctor API Response:",
+                    data
+                );
+
+
+                /*
+                ------------------------------------------
+                CHECK RESPONSE
+                ------------------------------------------
+                */
+
+                if (!data) {
+
+                    throw new Error(
+                        "Empty response received."
+                    );
+
+                }
+
+
+                if (
+                    data.success === false
+                ) {
+
+                    showError(
+                        data.error ||
+                        "Report not found."
+                    );
+
+
+                    return;
+
+                }
+
+
+                /*
+                ------------------------------------------
+                RENDER
+                ------------------------------------------
+                */
+
+                renderPatient(
+                    data.patient
+                );
+
+
+                renderReport(
+                    data.report,
+                    data.disclaimer
+                );
+
+
+                renderParameters(
+                    data.parameters
+                );
+
+
+                renderReviews(
+                    data.reviews
+                );
+
+
+                /*
+                ------------------------------------------
+                HIDE LOADING
+                ------------------------------------------
+                */
+
+                loadingCard.classList.add(
+                    "hidden"
+                );
+
+
+                /*
+                ------------------------------------------
+                SHOW CONTENT
+                ------------------------------------------
+                */
+
+                reportCard.classList.remove(
+                    "hidden"
+                );
+
+
+                summaryCard.classList.remove(
+                    "hidden"
+                );
+
+
+                parametersCard.classList.remove(
+                    "hidden"
+                );
+
+
+                reviewsCard.classList.remove(
+                    "hidden"
+                );
+
+
+                console.log(
+                    "Doctor Report loaded successfully."
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Doctor report error:",
+                    error
+                );
+
+
+                showError(
+                    `Could not load report: ${error.message}`
+                );
+
+            }
+
+        }
+
+
+
+        /*
+        ======================================================
+        SUBMIT DOCTOR REVIEW
+        ======================================================
+        */
+
+        document
+            .getElementById(
+                "form-review"
+            )
+            .addEventListener(
+                "submit",
+                async event => {
+
+                    event.preventDefault();
+
+
+                    const form =
+                        event.target;
+
+
+                    const status =
+                        document.getElementById(
+                            "review-status"
+                        );
+
+
+                    const submitButton =
+                        document.getElementById(
+                            "review-submit-button"
+                        );
+
+
+                    /*
+                    --------------------------------------
+                    REPORT ID CHECK
+                    --------------------------------------
+                    */
+
+                    if (!reportId) {
+
+                        status.textContent =
+                            "Cannot submit review because the report ID is missing.";
+
+                        status.className =
+                            "form-status error";
+
+                        return;
+
+                    }
+
+
+                    /*
+                    --------------------------------------
+                    GET FORM DATA
+                    --------------------------------------
+                    */
+
+                    const formData =
+                        new FormData(
+                            form
+                        );
+
+
+                    const doctorName =
+                        String(
+                            formData.get(
+                                "doctor_name"
+                            ) || ""
+                        ).trim();
+
+
+                    const review =
+                        String(
+                            formData.get(
+                                "review"
+                            ) || ""
+                        ).trim();
+
+
+                    /*
+                    --------------------------------------
+                    VALIDATION
+                    --------------------------------------
+                    */
+
+                    if (!doctorName) {
+
+                        status.textContent =
+                            "Please enter the doctor's name.";
+
+                        status.className =
+                            "form-status error";
+
+                        return;
+
+                    }
+
+
+                    if (!review) {
+
+                        status.textContent =
+                            "Please enter a review.";
+
+                        status.className =
+                            "form-status error";
+
+                        return;
+
+                    }
+
+
+                    /*
+                    --------------------------------------
+                    PAYLOAD
+                    --------------------------------------
+                    */
+
+                    const payload = {
+
+                        report_id:
+                            reportId,
+
+                        doctor_name:
+                            doctorName,
+
+                        review:
+                            review
+
+                    };
+
+
+                    console.log(
+                        "Submitting Doctor Review:",
+                        payload
+                    );
+
+
+                    /*
+                    --------------------------------------
+                    UI
+                    --------------------------------------
+                    */
+
+                    submitButton.disabled =
+                        true;
+
+
+                    submitButton.textContent =
+                        "Submitting...";
+
+
+                    status.textContent =
+                        "Submitting review...";
+
+
+                    status.className =
+                        "form-status";
+
+
+                    try {
+
+                        /*
+                        ----------------------------------
+                        API
+                        ----------------------------------
+                        */
+
+                        const result =
+                            await Api.submitDoctorReview(
+                                payload
+                            );
+
+
+                        console.log(
+                            "Review API Response:",
+                            result
+                        );
+
+
+                        /*
+                        ----------------------------------
+                        SUCCESS
+                        ----------------------------------
+                        */
+
+                        status.textContent =
+                            "Review submitted successfully.";
+
+                        status.className =
+                            "form-status success";
+
+
+                        form.reset();
+
+
+                        /*
+                        ----------------------------------
+                        RELOAD REVIEWS
+                        ----------------------------------
+                        */
+
+                        const updated =
+                            await Api.getDoctorReport(
+                                reportId
+                            );
+
+
+                        renderReviews(
+                            updated.reviews || []
+                        );
+
+
+                    } catch (error) {
+
+                        console.error(
+                            "Review submission error:",
+                            error
+                        );
+
+
+                        status.textContent =
+                            `Could not submit review: ${error.message}`;
+
+                        status.className =
+                            "form-status error";
+
+                    }
+
+
+                    /*
+                    --------------------------------------
+                    RESTORE BUTTON
+                    --------------------------------------
+                    */
+
+                    submitButton.disabled =
+                        false;
+
+
+                    submitButton.textContent =
+                        "Submit Review";
+
+                }
+            );
+
+
+
+        /*
+        ======================================================
+        START PAGE
+        ======================================================
+        */
+
+        loadDoctorReport();
+
+    </script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointments - HealthVault AI</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="topbar"> <a href="dashboard.html" class="brand">
+            <span class="brand-mark">HV</span>
+            <div>
+                <h1 style="font-size:1.2rem;"> HealthVault AI</h1>
+                <p class="tagline">Your personal health records, organized.</p>
+            </div>
+        </a>
+        <nav class="tabs">
+            <a class="tab-btn" href="dashboard.html"> Overview</a>
+            <a class="tab-btn" href="reports.html"> Reports</a>
+            <a class="tab-btn" href="medications.html"> Medications</a>
+            <a class="tab-btn active" href="appointments.html"> Appointments</a>
+            <a class="tab-btn" href="trends.html">Trends</a>
+        </nav>
+        <button class="btn-ghost" onclick="signOut()"> Switch Patient</button>
+    </header>
+
+    <div class="page">
+        <section class="card">
+            <div class="card-header-row">
+                <h2>
+                    Appointments
+                </h2>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>
+                            Doctor
+                        </th>
+                        <th>
+                            Hospital
+                        </th>
+                        <th>
+                            Date
+                        </th>
+                        <th>
+                            Time
+                        </th>
+                        <th>
+                            Purpose
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="appointments-body"></tbody>
+            </table>
+            <form id="form-appointment" class="inline-form">
+                <label> Doctor name<input type="text" name="doctor_name" required></label>
+                <label>Hospital / Clinic<input type="text" name="hospital" required></label>
+                <label>Date<input type="date" name="appointment_date" required> </label>
+                <label></label>Time<input type="time" name="appointment_time" required></label>
+                <label>Purpose<input type="text" name="purpose" required></label>
+                <label> Notes<textarea name="notes" rows="1"></textarea></label>
+
+                <button type="submit" class="btn-primary">Add Appointment</button>
+            </form>
+            <p class="form-status" id="appointment-status"></p>
+        </section>
+    </div>
+    <script src="app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="api.js"></script>
+    <script>
+        const userId =
+            requireUser();
+        function loadAppointments() {
+            Api.getAppointments(
+                userId
+            )
+                .then(
+                    renderAppointments
+                )
+                .catch(error => {
+                    document
+                        .getElementById(
+                            "appointments-body"
+                        )
+                        .innerHTML = `
+                <tr>
+                    <td colspan="5">
+                        Could not load appointments:
+                        ${error.message}
+                    </td>
+                </tr>
+            `;
+                });
+        }
+        function renderAppointments(
+            appointments
+        ) {
+            const body =
+                document.getElementById(
+                    "appointments-body"
+                );
+            body.innerHTML = "";
+            if (
+                !appointments ||
+                appointments.length === 0
+            ) {
+                body.innerHTML = `
+            <tr>
+                <td colspan="5">
+                    No appointments scheduled.
+                </td>
+            </tr>
+        `;
+                return;
+            }
+            appointments.forEach(
+                appointment => {
+                    const row =
+                        document.createElement(
+                            "tr"
+                        );
+                    row.innerHTML = `
+                <td>
+                    ${appointment.doctor_name || "-"}
+                </td>
+                <td>
+                    ${appointment.hospital || "-"}
+                </td>
+                <td>
+                    ${appointment.appointment_date || "-"}
+                </td>
+                <td>
+                    ${appointment.appointment_time || "-"}
+                </td>
+                <td>
+                    ${appointment.purpose || "-"}
+                </td>
+            `;
+                    body.appendChild(
+                        row
+                    );
+                }
+            );
+        }
+        if (userId) {
+            loadAppointments();
+        }
+        document
+            .getElementById(
+                "form-appointment"
+            )
+            .addEventListener(
+                "submit",
+                async function (event) {
+                    event.preventDefault();
+                    const form =
+                        event.target;
+                    const status =
+                        document.getElementById(
+                            "appointment-status"
+                        );
+                    const payload =
+                        Object.fromEntries(
+                            new FormData(form)
+                                .entries()
+                        );
+                    payload.user_id =
+                        userId;
+                    try {
+                        await Api.addAppointment(
+                            payload
+                        );
+                        form.reset();
+                        status.textContent =
+                            "Appointment added successfully.";
+                        status.className =
+                            "form-status success";
+                        loadAppointments()
+                    } catch (error) {
+                        status.textContent =
+                            `Could not save appointment: ${error.message}`;
+                        status.className =
+                            "form-status error";
+                    }
+                }
+            );
+    </script>
+</body>
+
+</html>

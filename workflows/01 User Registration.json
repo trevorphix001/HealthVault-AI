@@ -1,0 +1,236 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "register-user",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": " http://localhost:65529 "
+        }
+      },
+      "id": "1ddd858c-2e98-433d-9be1-2efdde2a5d79",
+      "name": "Webhook - Register",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        -64
+      ],
+      "webhookId": "register-user"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\n// Accept data whether n8n puts it inside \"body\" or directly in the item\nconst b = input.body ?? input;\n\nconst required = [\n  'name',\n  'email',\n  'phone',\n  'date_of_birth',\n  'gender',\n  'blood_group'\n];\n\nconst missing = required.filter(\n  field => b[field] === undefined || b[field] === null || String(b[field]).trim() === ''\n);\n\nif (missing.length > 0) {\n  return [{\n    json: {\n      valid: false,\n      error: `Missing fields: ${missing.join(', ')}`\n    }\n  }];\n}\n\nconst email = String(b.email).trim().toLowerCase();\n\nconst emailOk = /^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(email);\n\nif (!emailOk) {\n  return [{\n    json: {\n      valid: false,\n      error: 'Invalid email format'\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    valid: true,\n    name: String(b.name).trim(),\n    email: email,\n    phone: String(b.phone).trim(),\n    date_of_birth: b.date_of_birth,\n    gender: String(b.gender).trim(),\n    blood_group: String(b.blood_group).trim()\n  }\n}];"
+      },
+      "id": "52aa05bc-3ced-4b92-a931-4490b085ebc2",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{$json.valid}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4cf76cbb-c61d-4599-b640-9ed0de0e12e5",
+      "name": "Is Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        144,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hgchtelulgakrlpvetex.supabase.co/rest/v1/users",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"Debojit\",\n  \"email\": \"debojit2@gmail.com\",\n  \"phone\": \"9767876534\",\n  \"date_of_birth\": \"2003-05-21\",\n  \"gender\": \"Male\",\n  \"blood_group\": \"AB+\"\n}",
+        "options": {}
+      },
+      "id": "82620af8-024e-4447-ad8b-4b7cd97bbaf9",
+      "name": "Insert User (Supabase)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        352,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "success",
+              "type": "boolean",
+              "value": true
+            },
+            {
+              "id": "a2",
+              "name": "user_id",
+              "type": "string",
+              "value": "=={{$json.user_id}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8b6dd749-e1af-4e5d-bc7b-3a99ebb34f58",
+      "name": "Format Success",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        576,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, user_id: $json.user_id } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "4d8048fb-cc0d-4a1b-a048-10291e3bc2f6",
+      "name": "Respond - Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: $json.error } }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "04e4b566-88f0-42c0-b2c2-a6cca944cbfd",
+      "name": "Respond - Validation Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        64
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Register": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Is Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Valid?": {
+      "main": [
+        [
+          {
+            "node": "Insert User (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond - Validation Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert User (Supabase)": {
+      "main": [
+        [
+          {
+            "node": "Format Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Success": {
+      "main": [
+        [
+          {
+            "node": "Respond - Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "a7ad299355767cbe9e5765939b307d98969527de1a64880556408d9c4c45e185"
+  }
+}

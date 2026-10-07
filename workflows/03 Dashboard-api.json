@@ -1,0 +1,422 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "path": ":user_id",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "http://127.0.0.1:3000"
+        }
+      },
+      "id": "9902b08e-ced3-4dd2-9864-a5b0fc335797",
+      "name": "Webhook - Dashboard",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1760,
+        64
+      ],
+      "webhookId": "dashboard"
+    },
+    {
+      "parameters": {
+        "url": "https://hgchtelulgakrlpvetex.supabase.co/rest/v1/users",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "select",
+              "value": "=*"
+            },
+            {
+              "name": "user_id",
+              "value": "={{ \"eq.\" + $('Webhook - Dashboard').first().json.params.user_id }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3aa0e4ab-f213-4c29-afd4-f4be9cf34637",
+      "name": "Get User",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1536,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://hgchtelulgakrlpvetex.supabase.co/rest/v1/medical_reports",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "select",
+              "value": "*"
+            },
+            {
+              "name": "user_id",
+              "value": "={{ \"eq.\" + $('Webhook - Dashboard').first().json.params.user_id }}"
+            },
+            {
+              "name": "order",
+              "value": "report_date.desc"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "options": {}
+      },
+      "id": "2341ea75-e6e3-4039-84b4-428802c7d1ee",
+      "name": "Get Reports",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1328,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://hgchtelulgakrlpvetex.supabase.co/rest/v1/health_parameters",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "select",
+              "value": "*"
+            },
+            {
+              "name": "user_id",
+              "value": "={{ \"eq.\" + $('Webhook - Dashboard').first().json.params.user_id }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f503cdeb-c3a1-429e-acfd-55a81cb674c0",
+      "name": "Get Parameters",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1104,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://hgchtelulgakrlpvetex.supabase.co/rest/v1/medications",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "select",
+              "value": "*"
+            },
+            {
+              "name": "user_id",
+              "value": "eq.5db86d72-f1a0-4aa3-be23-b01d53eddccc"
+            },
+            {
+              "name": "order",
+              "value": "reminder_time.asc"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0143eb31-3398-4dcb-a339-b36924751e1c",
+      "name": "Get Medications",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -880,
+        64
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "url": "https://hgchtelulgakrlpvetex.supabase.co/rest/v1/appointments",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "select",
+              "value": "*"
+            },
+            {
+              "name": "user_id",
+              "value": "={{ \"eq.\" + $('Webhook - Dashboard').first().json.params.user_id }}"
+            },
+            {
+              "name": "order",
+              "value": "appointment_date.asc"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3beaddb3-5572-44d8-8608-4dca37be4ffa",
+      "name": "Get Appointments",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -656,
+        64
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const users = $('Get User').first().json;\nif (!users || users.length === 0) {\n  return [{ json: { notFound: true } }];\n}\nreturn [{ json: {\n  notFound: false,\n  user: users[0],\n  reports: $('Get Reports').first().json,\n  parameters: $('Get Parameters').first().json,\n  medications: $('Get Medications').first().json,\n  appointments: $('Get Appointments').first().json\n} }];"
+      },
+      "id": "a767f25f-58ff-4ec9-9089-ef3798cc6d66",
+      "name": "Combine Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{$json.notFound}}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "12e64935-a7ff-4db0-bc72-807c1adea982",
+      "name": "Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "298b8158-f12a-45b7-9cca-e2ac8d3300a8",
+      "name": "Respond - Dashboard Data",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: 'User not found' } }}",
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "id": "6a1d1d01-a9d9-40d8-b798-eaf0bb28fe1b",
+      "name": "Respond - Not Found",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        144
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Dashboard": {
+      "main": [
+        [
+          {
+            "node": "Get User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User": {
+      "main": [
+        [
+          {
+            "node": "Get Reports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Reports": {
+      "main": [
+        [
+          {
+            "node": "Get Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Parameters": {
+      "main": [
+        [
+          {
+            "node": "Get Medications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Medications": {
+      "main": [
+        [
+          {
+            "node": "Get Appointments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Appointments": {
+      "main": [
+        [
+          {
+            "node": "Combine Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Response": {
+      "main": [
+        [
+          {
+            "node": "Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Found?": {
+      "main": [
+        [
+          {
+            "node": "Respond - Dashboard Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond - Not Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "a7ad299355767cbe9e5765939b307d98969527de1a64880556408d9c4c45e185"
+  }
+}

@@ -1,0 +1,671 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "upload-report",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "http://localhost:3000",
+          "binaryPropertyName": "file",
+          "ignoreBots": true
+        }
+      },
+      "id": "d4885eac-6609-4378-9266-006c5d7df79a",
+      "name": "Webhook - Upload Report",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1104,
+        224
+      ],
+      "webhookId": "upload-report"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\n\n// n8n can place multipart form fields inside body.\n// Keep fallbacks so we can see exactly what arrived.\nconst body = item.json.body || item.json;\n\nconst user_id = body.user_id;\nconst report_type = body.report_type;\nconst report_date = body.report_date;\n\nconst binaryKeys = item.binary\n  ? Object.keys(item.binary)\n  : [];\n\nconst fileKey = item.binary?.file\n  ? 'file'\n  : binaryKeys.length > 0\n    ? binaryKeys[0]\n    : null;\n\nconst missing = [];\n\nif (!user_id) missing.push('user_id');\nif (!report_type) missing.push('report_type');\nif (!report_date) missing.push('report_date');\nif (!fileKey) missing.push('file');\n\nif (missing.length > 0) {\n  return [\n    {\n      json: {\n        valid: false,\n        error: `Missing: ${missing.join(', ')}`,\n\n        // DEBUG INFORMATION\n        received_body: body,\n        received_json: item.json,\n        received_binary_keys: binaryKeys\n      },\n      binary: item.binary\n    }\n  ];\n}\n\nreturn [\n  {\n    json: {\n      valid: true,\n      user_id: String(user_id).trim(),\n      report_type: String(report_type).trim(),\n      report_date: String(report_date).trim()\n    },\n    binary: {\n      file: item.binary[fileKey]\n    }\n  }\n];"
+      },
+      "id": "79d84916-11fe-402d-b4e1-fe79a1710f06",
+      "name": "Validate Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{$json.valid}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b8e556ce-e66f-4444-b94b-079d151c0cef",
+      "name": "Is Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://hgchtelulgakrlpvetex.supabase.co/rest/v1/users",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "user_id",
+              "value": "={{ \"eq.\" + $json.user_id }}"
+            },
+            {
+              "name": "select",
+              "value": "user_id"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b65b66dd-7e85-4bd9-8b58-13a3544ac592",
+      "name": "Check User Exists",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -448,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================\n// RESTORE FILE + DETERMINE WHETHER USER EXISTS\n// ============================================================\n\nconst userCheck = $input.first();\nconst originalRequest = $('Validate Request').first();\n\n// Check original uploaded file\nif (!originalRequest.binary?.file) {\n  throw new Error(\n    'Uploaded file was not found in \"Validate Request\". Expected binary.file.'\n  );\n}\n\n// Supabase response\nconst result = userCheck.json;\n\n// Supabase REST normally returns an array\nconst users = Array.isArray(result)\n  ? result\n  : [result];\n\n// Determine whether a user was found\nconst userFound = users.length > 0 && !!users[0]?.user_id;\n\n// Get original request information\nconst originalData = originalRequest.json;\n\n// Return everything needed downstream\nreturn [\n  {\n    json: {\n      valid: true,\n      user_found: userFound,\n\n      user_id: originalData.user_id,\n      report_type: originalData.report_type,\n      report_date: originalData.report_date,\n\n      ...(userFound\n        ? {\n            verified_user_id: users[0].user_id\n          }\n        : {})\n    },\n\n    binary: {\n      file: originalRequest.binary.file\n    }\n  }\n];"
+      },
+      "id": "79628d4d-e2a4-4fce-a449-d384ad9c893a",
+      "name": "Restore Binary File",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.user_found }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "36750a68-a1a4-477c-a34f-23182379d948",
+      "name": "User Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        0,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.ocr.space/parse/image",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "K83476674988957"
+            },
+            {
+              "name": "OCREngine",
+              "value": "2"
+            },
+            {
+              "name": "scale",
+              "value": "true"
+            },
+            {
+              "name": "isTable",
+              "value": "false"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "file"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "daeea51a-2d6e-4795-ba45-d50de308322a",
+      "name": "OCR.space - Extract Text",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const res = $input.first().json;\nconst validated = $('Validate Request').first().json;\nif (res.IsErroredOnProcessing) {\n  return [{ json: { ocrFailed: true, error: (res.ErrorMessage || ['OCR failed']).join('; '), ...validated } }];\n}\nconst parsedText = (res.ParsedResults || []).map(r => r.ParsedText || '').join('\\n').trim();\nif (!parsedText) {\n  return [{ json: { ocrFailed: true, error: 'OCR returned no text (image may be too low quality)', ...validated } }];\n}\nreturn [{ json: { ocrFailed: false, ocr_text: parsedText, ...validated } }];"
+      },
+      "id": "aef4d54f-4f8d-47e0-ac0a-f22d902825dd",
+      "name": "Parse OCR Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{$json.ocrFailed}}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "402db0f4-9637-4990-b436-cb73be2e95b3",
+      "name": "OCR Succeeded?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-goog-api-key",
+              "value": "AQ.Ab8RN6L6UU86eClwoUZbFjp722tMGZgwujaiVgz0LSr31GqsRQ"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { generationConfig: { temperature: 0, responseMimeType: 'application/json' }, contents: [ { role: 'user', parts: [ { text: `You are a medical report summarizer for an educational MVP. You must NEVER diagnose, prescribe, change dosage, or claim an abnormal value proves a disease. For any abnormal parameter, its 'status' must be 'high' or 'low' and you must NOT add clinical interpretation beyond that. Never invent values that are not present in the text. If information is missing, use null. If a value in the OCR text is unclear or ambiguous, do not guess — instead add a short note describing it to the uncertain_information array. Respond with ONLY valid JSON, no markdown fences, no commentary, matching exactly this schema: {\"summary\": string, \"report_type\": string, \"report_date\": string or null, \"parameters\": [{\"name\": string, \"value\": number or null, \"unit\": string or null, \"reference_range\": string or null, \"status\": \"normal\"|\"high\"|\"low\"|\"unknown\"}], \"medications\": [string], \"important_findings\": [string], \"follow_up\": [string], \"uncertain_information\": [string]}. Every 'summary' you write must end with this exact sentence: \"AI-generated summary for informational purposes only. It does not constitute medical advice or diagnosis.\" For any parameter whose status is high or low, append to important_findings this exact sentence about it: \"This value is outside the reference range shown in the report. Please discuss it with a qualified healthcare professional.\" Here is the OCR-extracted report text to analyze:\\n\\n${$json.ocr_text}` } ] } ] } }}",
+        "options": {
+          "timeout": 45000
+        }
+      },
+      "id": "de5f7d7c-10fd-4a43-9e0d-77119da062c3",
+      "name": "Gemini - AI Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        896,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the input from Gemini\nconst item = $input.first();\n\n// Gemini response text\nconst text =\n  item.json.candidates?.[0]?.content?.parts?.[0]?.text || '';\n\nif (!text) {\n  throw new Error('Gemini returned no text');\n}\n\n// Remove markdown code fences if Gemini added them\nlet cleanText = text\n  .replace(/```json/gi, '')\n  .replace(/```/g, '')\n  .trim();\n\n// Extract JSON object if there is extra text around it\nconst start = cleanText.indexOf('{');\nconst end = cleanText.lastIndexOf('}');\n\nif (start === -1 || end === -1) {\n  throw new Error('Gemini did not return valid JSON');\n}\n\ncleanText = cleanText.substring(start, end + 1);\n\n// Parse Gemini JSON\nlet ai;\n\ntry {\n  ai = JSON.parse(cleanText);\n} catch (error) {\n  throw new Error(\n    'Could not parse Gemini JSON: ' + error.message\n  );\n}\n\n// Convert dates to PostgreSQL format: YYYY-MM-DD\nfunction normalizeDate(date) {\n  if (!date) return null;\n\n  date = String(date).trim();\n\n  // Already YYYY-MM-DD\n  if (/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) {\n    return date;\n  }\n\n  // DD/MM/YYYY\n  let match = date.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);\n\n  if (match) {\n    const [, day, month, year] = match;\n    return `${year}-${month}-${day}`;\n  }\n\n  // DD-MM-YYYY\n  match = date.match(/^(\\d{2})-(\\d{2})-(\\d{4})$/);\n\n  if (match) {\n    const [, day, month, year] = match;\n    return `${year}-${month}-${day}`;\n  }\n\n  // Try to handle dates such as 17/04/26\n  match = date.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{2})$/);\n\n  if (match) {\n    const [, day, month, year] = match;\n    return `20${year}-${month}-${day}`;\n  }\n\n  // If format is unknown, return original value\n  return date;\n}\n\n// Get report date\nconst reportDate = normalizeDate(\n  ai.report_date || ai.date || item.json.report_date\n);\n\n// Get user ID from the original request if Gemini didn't return it\nlet userId = ai.user_id;\n\nif (!userId) {\n  try {\n    userId = $('Validate Request').first().json.user_id;\n  } catch (error) {\n    // Ignore if node is unavailable\n  }\n}\n\n// Pull the OCR text from the upstream Parse OCR Result node\nlet ocrText = '';\ntry {\n  ocrText = $('Parse OCR Result').first().json.ocr_text || '';\n} catch (error) {\n  // Ignore if node is unavailable\n}\n\n// Build final output with a nested `ai` object (downstream nodes read $json.ai.*)\nconst output = {\n  user_id: userId,\n  report_type: ai.report_type || 'Blood Test',\n  report_date: reportDate,\n  ocr_text: ocrText,\n  ai: {\n    summary: ai.summary || '',\n    parameters: Array.isArray(ai.parameters) ? ai.parameters : [],\n    important_findings: Array.isArray(ai.important_findings) ? ai.important_findings : [],\n    follow_up: Array.isArray(ai.follow_up) ? ai.follow_up : [],\n    uncertain_information: Array.isArray(ai.uncertain_information) ? ai.uncertain_information : []\n  }\n};\n\n// IMPORTANT:\n// n8n Code node must return an ARRAY of objects.\nreturn [\n  {\n    json: output\n  }\n];"
+      },
+      "id": "0cd3b225-556e-433a-b47d-63d1c6ad38a9",
+      "name": "Parse AI JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hgchtelulgakrlpvetex.supabase.co/rest/v1/medical_reports",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  user_id: $json.user_id,\n  report_type: $json.report_type,\n  report_date: $json.report_date,\n  ocr_raw_text: $json.ocr_text,\n  ai_summary: $json.ai.summary,\n  important_findings: $json.ai.important_findings,\n  follow_up: $json.ai.follow_up,\n  uncertain_information: $json.ai.uncertain_information,\n  status: 'completed'\n} }}",
+        "options": {}
+      },
+      "id": "444bd853-081c-4edd-8047-09cb135fb692",
+      "name": "Insert Report (Supabase)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1360,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(i => i.json);\nconst first = rows[0];\nconst report = Array.isArray(first) ? first[0] : first;\nconst prior = $('Parse AI JSON').first().json;\nconst params = (prior.ai.parameters || []).map(p => ({\n  report_id: report.report_id,\n  user_id: prior.user_id,\n  name: p.name,\n  value: p.value,\n  unit: p.unit,\n  reference_range: p.reference_range,\n  status: p.status || 'unknown',\n  measured_date: report.report_date\n}));\nreturn [{ json: { report, params, ai: prior.ai } }];"
+      },
+      "id": "4e0e7003-23ba-4d11-a6b2-933656891b7d",
+      "name": "Prepare Parameters Array",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hgchtelulgakrlpvetex.supabase.co/rest/v1/health_parameters",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.params }}",
+        "options": {}
+      },
+      "id": "dd79d1f8-b3d3-4d8f-8df1-f9c2160fa303",
+      "name": "Insert Health Parameters",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1824,
+        0
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { summary: $('Prepare Parameters Array').first().json.ai.summary, important_findings: $('Prepare Parameters Array').first().json.ai.important_findings, parameters: $('Prepare Parameters Array').first().json.params, report_id: $('Prepare Parameters Array').first().json.report.report_id } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "6e60a415-1e5d-4646-a30b-27fd591c6366",
+      "name": "Respond - Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2048,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hgchtelulgakrlpvetex.supabase.co/rest/v1/medical_reports",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { user_id: $json.user_id, report_type: $json.report_type, report_date: $json.report_date, status: 'failed', uncertain_information: [$json.error] } }}",
+        "options": {}
+      },
+      "id": "370dabf6-c51a-4a30-9c3b-314fc3eb521b",
+      "name": "Insert Failed Report (OCR)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        896,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: 'Could not read the report: ' + $('Parse OCR Result').first().json.error } }}",
+        "options": {
+          "responseCode": 422
+        }
+      },
+      "id": "634c9fc8-ccfc-4c60-8e93-cb3b181b767d",
+      "name": "Respond - OCR Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1104,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: 'User not found' } }}",
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "id": "df81ff21-d9be-4afb-a850-6e6f7bd7bc35",
+      "name": "Respond - User Not Found",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: $json.error } }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "a0fd8851-9b65-4463-8bbc-95d8f0a79972",
+      "name": "Respond - Validation Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -448,
+        288
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Upload Report": {
+      "main": [
+        [
+          {
+            "node": "Validate Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Request": {
+      "main": [
+        [
+          {
+            "node": "Is Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Valid?": {
+      "main": [
+        [
+          {
+            "node": "Check User Exists",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond - Validation Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check User Exists": {
+      "main": [
+        [
+          {
+            "node": "Restore Binary File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Binary File": {
+      "main": [
+        [
+          {
+            "node": "User Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User Found?": {
+      "main": [
+        [
+          {
+            "node": "OCR.space - Extract Text",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond - User Not Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OCR.space - Extract Text": {
+      "main": [
+        [
+          {
+            "node": "Parse OCR Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse OCR Result": {
+      "main": [
+        [
+          {
+            "node": "OCR Succeeded?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OCR Succeeded?": {
+      "main": [
+        [
+          {
+            "node": "Gemini - AI Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert Failed Report (OCR)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini - AI Analysis": {
+      "main": [
+        [
+          {
+            "node": "Parse AI JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI JSON": {
+      "main": [
+        [
+          {
+            "node": "Insert Report (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Report (Supabase)": {
+      "main": [
+        [
+          {
+            "node": "Prepare Parameters Array",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Parameters Array": {
+      "main": [
+        [
+          {
+            "node": "Insert Health Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Health Parameters": {
+      "main": [
+        [
+          {
+            "node": "Respond - Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Failed Report (OCR)": {
+      "main": [
+        [
+          {
+            "node": "Respond - OCR Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "a7ad299355767cbe9e5765939b307d98969527de1a64880556408d9c4c45e185"
+  }
+}

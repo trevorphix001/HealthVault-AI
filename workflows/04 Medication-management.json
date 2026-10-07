@@ -1,0 +1,297 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "medications",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "http://127.0.0.1:3000"
+        }
+      },
+      "id": "54dc65e4-046d-4c01-8460-9a27a1fe1c33",
+      "name": "Webhook - Add Medication",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        64
+      ],
+      "webhookId": "medications-post"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst b = input.body || input;\n\nconst required = [\n  'user_id',\n  'medicine_name',\n  'dosage',\n  'frequency',\n  'reminder_time',\n  'start_date'\n];\n\nconst missing = required.filter(\n  field =>\n    b[field] === undefined ||\n    b[field] === null ||\n    String(b[field]).trim() === ''\n);\n\nif (missing.length > 0) {\n  return [{\n    json: {\n      valid: false,\n      error: `Missing: ${missing.join(', ')}`\n    }\n  }];\n}\n\n// Normalize reminder time\nlet reminderTime = String(b.reminder_time).trim();\n\n// Convert HH:MM to HH:MM:SS\nif (/^\\d{2}:\\d{2}$/.test(reminderTime)) {\n  reminderTime += ':00';\n}\n\n// Validate HH:MM:SS\nif (!/^\\d{2}:\\d{2}:\\d{2}$/.test(reminderTime)) {\n  return [{\n    json: {\n      valid: false,\n      error: 'reminder_time must be in HH:MM or HH:MM:SS format'\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    valid: true,\n    user_id: String(b.user_id).trim(),\n    medicine_name: String(b.medicine_name).trim(),\n    dosage: String(b.dosage).trim(),\n    frequency: String(b.frequency).trim(),\n    reminder_time: reminderTime,\n    start_date: String(b.start_date).trim(),\n    end_date:\n      b.end_date && String(b.end_date).trim() !== ''\n        ? String(b.end_date).trim()\n        : null\n  }\n}];"
+      },
+      "id": "0b1293ae-2706-4086-bccf-d66c03f1b11d",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{$json.valid}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ab47dfd3-ac10-4b0f-99f8-22d8ba2e5f82",
+      "name": "Is Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hgchtelulgakrlpvetex.supabase.co/rest/v1/medications",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n{\n  user_id: $json.user_id,\n  medicine_name: $json.medicine_name,\n  dosage: $json.dosage,\n  frequency: $json.frequency,\n  reminder_time: $json.reminder_time,\n  start_date: $json.start_date,\n  end_date: $json.end_date\n}\n}}",
+        "options": {}
+      },
+      "id": "f6f8c206-3bbe-4243-9944-2f2d9abdc32d",
+      "name": "Insert Medication (Supabase)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, medication: $json[0] } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "e40bded0-edf2-4111-81ba-77fa50d7485f",
+      "name": "Respond - Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: $json.error } }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "4c51ee56-443c-4e2a-9fe1-fda2220d54a2",
+      "name": "Respond - Validation Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "path": "medications/:user_id",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "http://127.0.0.1:3000"
+        }
+      },
+      "id": "0c076319-0c0f-4a29-92e0-ef888ea839f6",
+      "name": "Webhook - Get Medications",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        320
+      ],
+      "webhookId": "medications-get"
+    },
+    {
+      "parameters": {
+        "url": "=https://hgchtelulgakrlpvetex.supabase.co/rest/v1/medications",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "user_id",
+              "value": "=eq.{{$json.params.user_id}}"
+            },
+            {
+              "name": "select",
+              "value": "*"
+            },
+            {
+              "name": "order",
+              "value": "reminder_time.asc"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnY2h0ZWx1bGdha3JscHZldGV4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODYzOTYwOSwiZXhwIjoyMTA0MjE1NjA5fQ.xxuCBLXND1_w8_ROiyNbvlWOXOxRU060M5vdmXB6ISM"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8164e3e6-ac8b-43f4-a029-a408c3d833c7",
+      "name": "Get Medications (Supabase)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -448,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "2ab721ed-8e6e-4cc9-88b0-0a947873e70b",
+      "name": "Respond - List",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -224,
+        320
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Add Medication": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Is Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Valid?": {
+      "main": [
+        [
+          {
+            "node": "Insert Medication (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond - Validation Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Medication (Supabase)": {
+      "main": [
+        [
+          {
+            "node": "Respond - Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook - Get Medications": {
+      "main": [
+        [
+          {
+            "node": "Get Medications (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Medications (Supabase)": {
+      "main": [
+        [
+          {
+            "node": "Respond - List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "a7ad299355767cbe9e5765939b307d98969527de1a64880556408d9c4c45e185"
+  }
+}

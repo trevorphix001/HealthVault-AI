@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Login | HealthVault AI</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<header class="topbar">
+
+    <div class="brand">
+
+        <span class="brand-icon">🧬</span>
+
+        <span>
+            HealthVault AI
+        </span>
+
+    </div>
+
+
+    <a
+        href="register.html"
+        class="nav-link"
+    >
+        Create Patient Profile
+    </a>
+
+</header>
+
+
+
+<main class="auth-page">
+
+
+    <section class="auth-card">
+
+
+        <div class="auth-header">
+
+            <h1>
+                Welcome Back
+            </h1>
+
+            <p>
+                Enter your Patient ID to access your
+                HealthVault dashboard.
+            </p>
+
+        </div>
+
+
+
+        <form id="login-form">
+
+
+            <div class="form-group">
+
+                <label for="patient-id">
+                    Patient ID
+                </label>
+
+                <input
+                    type="text"
+                    id="patient-id"
+                    placeholder="Enter your Patient ID"
+                    required
+                >
+
+            </div>
+
+
+            <button
+                type="submit"
+                id="login-button"
+                class="btn-primary"
+            >
+                Open Dashboard
+            </button>
+
+
+            <div
+                id="login-status"
+                class="form-status"
+                style="display:none;"
+            ></div>
+
+
+        </form>
+
+
+
+        <div class="auth-footer">
+
+            <p>
+
+                New patient?
+
+                <a href="register.html">
+                    Create your profile
+                </a>
+
+            </p>
+
+        </div>
+
+
+    </section>
+
+
+</main>
+
+
+
+<script src="app.js"></script>
+
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="api.js"></script>
+
+
+<script>
+
+
+const existingUser =
+    getCurrentUserId();
+
+
+if (existingUser) {
+
+    window.location.href =
+        "dashboard.html";
+}
+
+
+
+const form =
+    document.getElementById("login-form");
+
+const button =
+    document.getElementById("login-button");
+
+const status =
+    document.getElementById("login-status");
+
+
+
+function showStatus(message, type) {
+
+    status.style.display = "block";
+
+    status.textContent =
+        message;
+
+    status.className =
+        `form-status ${type}`;
+
+}
+
+
+
+form.addEventListener(
+    "submit",
+    async function(event) {
+
+        event.preventDefault();
+
+
+        const userId =
+            document
+                .getElementById("patient-id")
+                .value
+                .trim();
+
+
+        if (!userId) {
+            return;
+        }
+
+
+        button.disabled = true;
+
+        button.textContent =
+            "Checking Patient ID...";
+
+
+        showStatus(
+            "Checking your Patient ID...",
+            "loading"
+        );
+
+
+        try {
+
+            const data =
+                await Api.getDashboard(
+                    userId
+                );
+
+
+            if (
+                !data ||
+                data.notFound === true
+            ) {
+
+                throw new Error(
+                    "Patient ID not found."
+                );
+
+            }
+
+
+            setCurrentUserId(
+                userId
+            );
+
+
+            showStatus(
+                "Login successful. Opening dashboard...",
+                "success"
+            );
+
+
+            setTimeout(
+                () => {
+
+                    window.location.href =
+                        "dashboard.html";
+
+                },
+                500
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                error
+            );
+
+
+            showStatus(
+                error.message ||
+                "Could not find that Patient ID.",
+                "error"
+            );
+
+
+            button.disabled = false;
+
+            button.textContent =
+                "Open Dashboard";
+        }
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>
